@@ -1,110 +1,58 @@
 name: Build APK
 
-# Dat file nay tai: .github/workflows/build.yml
-# Dat file zip ma nguon Android (ten bat ky, duoi .zip) o thu muc goc cua repo.
 on:
   push:
-    branches: [main, master]
-    paths:
-      - '*.zip'
-      - '.github/workflows/build.yml'
+    paths: ['source.zip', '.github/workflows/build.yml']
   workflow_dispatch:
 
 permissions:
   contents: write
 
-env:
-  # Keystore tich hop san: moi lan build deu ky cung 1 khoa => cai de cap nhat len app cu duoc
-  KEYSTORE_PASSWORD: vichitieu2026
-  KEY_ALIAS: vichitieu
-  KEY_PASSWORD: vichitieu2026
-  KEYSTORE_B64: "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"
-
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Keystore (PKCS12) mã hóa base64 - alias: chitieu, mật khẩu: chitieu2026 (khớp app/build.gradle.kts)
+      KEYSTORE_B64: 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
+      VERSION_CODE: ${{ github.run_number }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Accept Android SDK licenses (dung SDK co san tren runner)
-        run: |
-          set +o pipefail
-          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
-          echo "Android SDK: $SDK"
-          mkdir -p "$SDK/licenses"
-          # Ghi san ma license de khong bi hoi (y/N) -> khong bi treo/loi
-          echo -e "\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e" > "$SDK/licenses/android-sdk-license"
-          echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$SDK/licenses/android-sdk-preview-license"
-          yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
-          echo "Da chap nhan license"
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Unzip source (tu nhan file zip, bat ke ten)
+      - name: Unzip source
         run: |
-          set -e
-          shopt -s nullglob nocaseglob
-          ZIPS=(*.zip)
-          [ ${#ZIPS[@]} -gt 0 ] || { echo "Khong tim thay file .zip nao o thu muc goc repo"; exit 1; }
-          rm -rf project
-          FOUND=""
-          for Z in "${ZIPS[@]}"; do
-            echo "Kiem tra: $Z"
-            rm -rf project && mkdir project
-            unzip -q -o "$Z" -d project || continue
-            SETTINGS=$(find project -maxdepth 3 -name settings.gradle.kts | head -n 1)
-            if [ -n "$SETTINGS" ]; then FOUND="$SETTINGS"; echo "Dung file zip: $Z"; break; fi
-          done
-          [ -n "$FOUND" ] || { echo "Khong file zip nao chua settings.gradle.kts"; exit 1; }
-          echo "PROJECT_DIR=$(dirname "$FOUND")" >> "$GITHUB_ENV"
-          echo "Project dir: $(dirname "$FOUND")"
-
-      - name: Check project structure
-        run: |
-          cd "$PROJECT_DIR"
-          for f in settings.gradle.kts build.gradle.kts gradle.properties app/build.gradle.kts \
-                   app/src/main/AndroidManifest.xml app/src/main/java/com/vichitieu/app/MainActivity.kt; do
-            test -f "$f" || { echo "THIEU FILE: $f"; exit 1; }
-          done
-          echo "Cau truc hop le"
+          rm -rf src_build && mkdir src_build
+          unzip -q -o source.zip -d src_build
+          SETTINGS=$(find src_build -maxdepth 2 -name 'settings.gradle*' | head -1)
+          test -n "$SETTINGS" || { echo "Không thấy settings.gradle trong source.zip"; exit 1; }
+          echo "ROOT=$(dirname "$SETTINGS")" >> $GITHUB_ENV
 
       - name: Restore keystore
-        run: |
-          set -e
-          echo "$KEYSTORE_B64" | base64 -d > "$PROJECT_DIR/app/release.jks"
-          keytool -list -keystore "$PROJECT_DIR/app/release.jks" -storepass "$KEYSTORE_PASSWORD" | head -n 5
+        run: echo "$KEYSTORE_B64" | base64 -d > "$ROOT/app/chitieu.jks"
 
       - name: Build release APK
-        run: |
-          cd "$PROJECT_DIR"
-          gradle assembleRelease --no-daemon --stacktrace
+        working-directory: ${{ env.ROOT }}
+        run: gradle assembleRelease --no-daemon --stacktrace
 
-      - name: Collect APK
-        run: |
-          mkdir -p out
-          cp "$PROJECT_DIR"/app/build/outputs/apk/release/*.apk out/ViChiTieu.apk
-          ls -la out
+      - name: Rename APK
+        run: cp "$ROOT"/app/build/outputs/apk/release/*.apk ChiTieuAI.apk
 
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: ViChiTieu-apk
-          path: out/ViChiTieu.apk
+          name: ChiTieuAI-apk
+          path: ChiTieuAI.apk
 
-      - name: Publish GitHub Release
-        if: github.event_name != 'pull_request'
+      - name: Publish release (tải APK trực tiếp trên điện thoại)
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ github.run_number }}
-          name: Vi Chi Tieu build ${{ github.run_number }}
-          files: out/ViChiTieu.apk
+          tag_name: v${{ github.run_number }}
+          name: Chi Tiêu AI v${{ github.run_number }}
+          files: ChiTieuAI.apk
