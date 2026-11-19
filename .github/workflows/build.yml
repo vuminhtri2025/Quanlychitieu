@@ -1,58 +1,161 @@
-name: Build APK
+name: Build MimiAI APK
 
 on:
   push:
-    paths: ['source.zip', '.github/workflows/build.yml']
+    branches: [ main, master ]
   workflow_dispatch:
 
 permissions:
   contents: write
 
+env:
+  # Tên file zip chứa mã nguồn (đặt ở thư mục gốc của repo)
+  ZIP_FILE: MimiAI.zip
+  # ---- Keystore tích hợp sẵn (giữ nguyên để các bản cập nhật cài đè được lên nhau) ----
+  KEYSTORE_PASSWORD: MimiAI@2026
+  KEY_ALIAS: mimi
+  KEY_PASSWORD: MimiAI@2026
+  KEYSTORE_B64: |
+      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
+      47xRBBRfTFVDMGlt/qnH/MGCD2kRu+HqrgICJxA=
+
 jobs:
   build:
+    name: Unzip và build APK
     runs-on: ubuntu-latest
-    env:
-      # Keystore (PKCS12) mã hóa base64 - alias: chitieu, mật khẩu: chitieu2026 (khớp app/build.gradle.kts)
-      KEYSTORE_B64: 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
-      VERSION_CODE: ${{ github.run_number }}
-    steps:
-      - uses: actions/checkout@v4
+    timeout-minutes: 40
 
-      - uses: actions/setup-java@v4
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Giải nén mã nguồn
+        run: |
+          set -e
+          mkdir -p _src
+          if [ -f "$ZIP_FILE" ]; then
+            ZIP="$ZIP_FILE"
+          else
+            ZIP="$(ls -1 *.zip 2>/dev/null | head -n1 || true)"
+          fi
+          if [ -n "$ZIP" ]; then
+            echo "Giải nén: $ZIP"
+            unzip -q -o "$ZIP" -d _src
+          elif [ -f settings.gradle.kts ] || [ -f settings.gradle ]; then
+            echo "Không có file zip, dùng mã nguồn ở thư mục gốc"
+            cp -r ./. _src/ 2>/dev/null || true
+          else
+            echo "::error::Không tìm thấy file zip mã nguồn ($ZIP_FILE)"
+            exit 1
+          fi
+          SETTINGS="$(find _src -maxdepth 3 \( -name settings.gradle.kts -o -name settings.gradle \) -not -path '*/.git/*' | head -n1)"
+          if [ -z "$SETTINGS" ]; then
+            echo "::error::Không tìm thấy settings.gradle(.kts) trong mã nguồn"
+            exit 1
+          fi
+          PROJECT_DIR="$(cd "$(dirname "$SETTINGS")" && pwd)"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          echo "Thư mục project: $PROJECT_DIR"
+          ls -la "$PROJECT_DIR"
+
+      - name: Cài JDK 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
+      - name: Cài Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Unzip source
+      - name: Cài gói SDK cần thiết
         run: |
-          rm -rf src_build && mkdir src_build
-          unzip -q -o source.zip -d src_build
-          SETTINGS=$(find src_build -maxdepth 2 -name 'settings.gradle*' | head -1)
-          test -n "$SETTINGS" || { echo "Không thấy settings.gradle trong source.zip"; exit 1; }
-          echo "ROOT=$(dirname "$SETTINGS")" >> $GITHUB_ENV
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
 
-      - name: Restore keystore
-        run: echo "$KEYSTORE_B64" | base64 -d > "$ROOT/app/chitieu.jks"
-
-      - name: Build release APK
-        working-directory: ${{ env.ROOT }}
-        run: gradle assembleRelease --no-daemon --stacktrace
-
-      - name: Rename APK
-        run: cp "$ROOT"/app/build/outputs/apk/release/*.apk ChiTieuAI.apk
-
-      - uses: actions/upload-artifact@v4
+      - name: Cài Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
         with:
-          name: ChiTieuAI-apk
-          path: ChiTieuAI.apk
+          gradle-version: '8.7'
 
-      - name: Publish release (tải APK trực tiếp trên điện thoại)
+      - name: Khôi phục keystore
+        run: |
+          set -e
+          mkdir -p "$PROJECT_DIR/app/keystore"
+          echo "$KEYSTORE_B64" | base64 -d > "$PROJECT_DIR/app/keystore/mimi-release.jks"
+          keytool -list -keystore "$PROJECT_DIR/app/keystore/mimi-release.jks" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" | tail -n 3
+
+      - name: Build APK (release, đã ký)
+        run: |
+          cd "$PROJECT_DIR"
+          gradle assembleRelease --no-daemon --stacktrace
+
+      - name: Kiểm tra chữ ký APK
+        run: |
+          APK="$(find "$PROJECT_DIR/app/build/outputs/apk/release" -name '*.apk' | head -n1)"
+          echo "APK: $APK"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner | sort | tail -n1)"
+          "$APKSIGNER" verify --verbose --print-certs "$APK" | head -n 12
+          mkdir -p dist
+          cp "$APK" "dist/MimiAI-v1.0.${{ github.run_number }}.apk"
+          ls -la dist
+
+      - name: Tải APK lên Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MimiAI-apk
+          path: dist/*.apk
+          if-no-files-found: error
+
+      - name: Tạo bản Release (để tải APK trực tiếp từ điện thoại)
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ github.run_number }}
-          name: Chi Tiêu AI v${{ github.run_number }}
-          files: ChiTieuAI.apk
+          tag_name: v1.0.${{ github.run_number }}
+          name: MimiAI v1.0.${{ github.run_number }}
+          files: dist/*.apk
