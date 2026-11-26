@@ -47,13 +47,12 @@ jobs:
       - name: Build release APK (tự thử lại khi lỗi tải thư viện)
         working-directory: ${{ env.ROOT }}
         run: |
-          OPTS="-Dorg.gradle.internal.repository.max.retries=5 -Dorg.gradle.internal.repository.initial.backoff=2000 -Dorg.gradle.internal.http.connectionTimeout=60000 -Dorg.gradle.internal.http.socketTimeout=60000"
+          OPTS="-Dorg.gradle.internal.repository.max.retries=3 -Dorg.gradle.internal.repository.initial.backoff=1500 -Dorg.gradle.internal.http.connectionTimeout=60000 -Dorg.gradle.internal.http.socketTimeout=60000"
           for i in 1 2 3; do
-            if [ "$i" = "1" ]; then EXTRA=""; else EXTRA="--refresh-dependencies"; fi
             echo "=== Lần build $i ==="
-            if gradle assembleRelease --no-daemon --stacktrace $OPTS $EXTRA; then exit 0; fi
-            echo "Build lần $i lỗi, đợi 30 giây rồi thử lại (lần sau tải lại toàn bộ thư viện)..."
-            sleep 30
+            if gradle assembleRelease --no-daemon --stacktrace $OPTS; then exit 0; fi
+            echo "Build lần $i lỗi, đợi 60 giây (để hết giới hạn 429 của máy chủ thư viện) rồi thử lại..."
+            sleep 60
           done
           exit 1
 
@@ -73,6 +72,14 @@ jobs:
         with:
           name: ChiTieuAI-apk
           path: ChiTieuAI.apk
+
+      - name: Lưu mapping R8 (để giải mã lỗi sập app nếu có)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ChiTieuAI-mapping
+          path: ${{ env.ROOT }}/app/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: ignore
 
       - name: Publish release (tải APK trực tiếp trên điện thoại)
         uses: softprops/action-gh-release@v2
